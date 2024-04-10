@@ -1,12 +1,16 @@
-import sqlite3
+''' Create 3 Tables for World Database Project
+        This script creates 3 tables (OlympicMedals, Continent, and Health) with fictional values.
+        This code does not handle exceptions/errors and is meant to be run once and only once.
+'''
+
 import mysql.connector
 import random
 
 # Connect to the MySQL server
 conn = mysql.connector.connect(
-    host="127.0.0.1",
-    user="root",
-    password="password",
+    host="your_host",
+    user="your_user",
+    password="your_password",
     database="world"
 )
 cursor = conn.cursor()
@@ -70,7 +74,7 @@ def generateContinent():
     cursor.execute('''CREATE TABLE IF NOT EXISTS Continent (
                     Continent VARCHAR(20) PRIMARY KEY,
                     SurfaceArea FLOAT,
-                    Population INTEGER,
+                    Population BIGINT,
                     GNP FLOAT
                    )''')
     #List of continents
@@ -86,8 +90,9 @@ def generateContinent():
         #Get GNP
         cursor.execute("SELECT SUM(GNP) FROM Country WHERE continent = %s", (continent,))
         gnp = cursor.fetchone()[0]
+        #Create data object
         data = {
-            'Continent': continent[0],
+            'Continent': continent,
             'SurfaceArea': surfaceArea,
             'Population': population,
             'GNP': gnp
@@ -107,7 +112,7 @@ def generateHealth():
                     Birth FLOAT,
                     Obesity FLOAT,
                     STI FLOAT,
-                    Diabetes FLOAT
+                    Diabetes FLOAT,
                     CoVid FLOAT
                    )''')
     #Get a list of distinct cities
@@ -127,19 +132,31 @@ def generateHealth():
         diabetes = randomPercent(2,25)
         #CoVid
         covid = randomPercent(1,5)
+        #Create data object
+        data = {
+            'CityID': city[0],
+            'Mortality': mortality,
+            'Birth': birth,
+            'Obesity': obesity,
+            'STI': sti,
+            'Diabetes': diabetes,
+            'CoVid': covid
+            }
         #Insert into table
         cursor.execute('''INSERT INTO Health (CityID,Mortality,Birth,Obesity,STI,Diabetes,CoVid)
-                            VALUES (?,?,?,?,?,?,?)''', (city[0],mortality,birth,obesity,sti,diabetes,covid))
+                            VALUES (%(CityID)s, %(Mortality)s, %(Birth)s, %(Obesity)s, %(STI)s, %(Diabetes)s, %(CoVid)s)''', data)
     #Commit
     conn.commit()
+    print("Successfully Added Health Table")
 
 #Main Function
 def main():
     if conn.is_connected():
         print("Connected to MySQL server")
-        #generateOlympicMedals()
+        generateOlympicMedals()
         generateContinent()
-        #generateHealth()
+        generateHealth()
+        print("Success!")
     else:
         print("Execution Unsuccessful")
 
